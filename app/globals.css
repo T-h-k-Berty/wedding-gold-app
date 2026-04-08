@@ -7,6 +7,7 @@
 
 body {
   color: #333;
+  /* background-rings_blurred.png url එක මෙහි නිවැරදි කර ඇත */
   background-image: url('/wedding_rings_blurred.png');
   background-size: cover;
   background-position: center;
