@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence, Variants } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion"; // 'Variants' import එක ඉවත් කර ඇත
 import confetti from "canvas-confetti";
-import { MapPin, Phone, Mail, Heart, Volume2, VolumeX, CheckCircle } from "lucide-react";
+import { MapPin, Clock, Calendar, Phone, Mail, Heart, Volume2, VolumeX, CheckCircle } from "lucide-react";
 import { supabase } from "@/utils/supabase";
 
 const weddingData = {
@@ -80,34 +80,37 @@ export default function WeddingInvitation() {
     
     if (audio) { audio.play().then(() => setIsPlaying(true)).catch((e) => console.log("Audio autoplay blocked by browser", e)); }
 
-    // Create flying hearts data
-    const hearts = Array.from({ length: 20 }).map((_, i) => ({
+    // ලියුම් කවරයෙන් එළියට විසිවන Hearts නිර්මාණය
+    const hearts = Array.from({ length: 30 }).map((_, i) => ({
       id: i,
-      angle: (Math.random() * Math.PI) - (Math.PI / 2), // Random angle pointing upwards (-90 to 90 degrees roughly)
-      velocity: Math.random() * 200 + 100, // Speed
-      size: Math.random() * 15 + 10, // Size between 10px and 25px
-      delay: Math.random() * 0.5 // Slight delay for explosion effect
+      angle: Math.random() * Math.PI * 2, // වටේටම විසිවීමට
+      velocity: Math.random() * 150 + 50, // වේගය
+      size: Math.random() * 15 + 10, // ප්‍රමාණය
+      delay: Math.random() * 0.3 // ප්‍රමාදය
     }));
     setFlyingHearts(hearts);
 
-    // Default Confetti
-    const duration = 3000; const animationEnd = Date.now() + duration; const colors = ["#D4AF37", "#C0C0C0", "#FFFFFF"];
-    const frame = () => {
-      if (animationEnd - Date.now() <= 0) return;
-      confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
-      confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
-      requestAnimationFrame(frame);
-    };
-    frame();
+    // Confetti Animation එක Envelope එක ඇරුණාට පසුව
+    setTimeout(() => {
+      const duration = 3000; const animationEnd = Date.now() + duration; const colors = ["#D4AF37", "#C0C0C0", "#FFFFFF"];
+      const frame = () => {
+        if (animationEnd - Date.now() <= 0) return;
+        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: colors });
+        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: colors });
+        requestAnimationFrame(frame);
+      };
+      frame();
+    }, 1500);
     
-    // Switch to website view after animations
-    setTimeout(() => { setStep("website"); }, 3500);
+    // Website view එකට මාරු වීම
+    setTimeout(() => { setStep("website"); }, 3800);
   };
 
   const toggleAudio = () => {
     if (audio) { if (isPlaying) { audio.pause(); } else { audio.play(); } setIsPlaying(!isPlaying); }
   };
 
+  // RSVP Submission Handler
   const handleRSVPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -119,7 +122,7 @@ export default function WeddingInvitation() {
       ]);
       if (error) throw error;
       setSubmitStatus("success");
-      setFormData({ fullName: "", guestCount: "1", dietaryNotes: "" });
+      setFormData({ fullName: "", guestCount: "1", dietaryNotes: "" }); // Reset form
     } catch (error) {
       console.error("Error submitting RSVP:", error);
       setSubmitStatus("error");
@@ -128,8 +131,9 @@ export default function WeddingInvitation() {
     }
   };
 
-  const fadeInUp: Variants = { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } };
-  const slideInLeft: Variants = { hidden: { opacity: 0, x: -50 }, visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut" } } };
+  // Typescript Error එක වළක්වා ගැනීමට `any` යොදා ඇත
+  const fadeInUp: any = { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } } };
+  const slideInLeft: any = { hidden: { opacity: 0, x: -50 }, visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut" } } };
 
   return (
     <main className="min-h-screen w-full overflow-hidden relative">
@@ -150,7 +154,7 @@ export default function WeddingInvitation() {
           <motion.div key="envelope-view" className="absolute inset-0 flex items-center justify-center z-50 bg-[url('/envelope-bg.jpg')] bg-cover bg-center" exit={{ opacity: 0, scale: 1.1 }} transition={{ duration: 1 }}>
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
             
-            {/* The 3D Container for flipping effect */}
+            {/* ලියුම් කවරය ත්‍රිමාණව කැරකීමට අවශ්‍ය 3D Container එක */}
             <div className="relative z-10 flex flex-col items-center px-4 w-full max-w-sm md:max-w-none" style={{ perspective: "1500px" }}>
                 
                 <motion.div 
@@ -160,30 +164,27 @@ export default function WeddingInvitation() {
                   initial={{ rotateY: 0, scale: 1 }}
                   animate={
                     step === "opening" 
-                      ? { rotateY: 720, scale: [1, 1.2, 0], opacity: [1, 1, 0] } 
+                      ? { rotateY: [0, 360, 720], scale: [1, 1.15, 1.25, 0], opacity: [1, 1, 1, 0] } 
                       : { rotateY: 0, scale: 1 }
                   }
                   whileHover={step === "envelope" ? { scale: 1.05 } : {}}
                   transition={
                     step === "opening" 
-                      ? { duration: 2.5, ease: "easeInOut", times: [0, 0.6, 1] } 
+                      ? { duration: 3.5, ease: "easeInOut", times: [0, 0.4, 0.8, 1] } 
                       : { duration: 0.3 }
                   }
                 >
                   
                   {/* Envelope Back */}
                   <div className="absolute inset-0 bg-gradient-to-br from-yellow-600 to-yellow-800 rounded-lg shadow-2xl" style={{ backfaceVisibility: "hidden" }}></div>
-                  
-                  {/* The Inner Card (Empty as requested, but provides background structure) */}
-                  <div className="absolute left-3 right-3 bg-white/90 rounded flex flex-col items-center justify-center shadow-inner border border-gray-100 p-3" style={{ top: "12px", bottom: "12px", backfaceVisibility: "hidden" }}></div>
 
-                  {/* Envelope Top Flap */}
+                  {/* Envelope Top Flap (පියන) */}
                   <motion.div 
                     className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-yellow-500 to-yellow-600 rounded-t-lg shadow-sm origin-top z-20" 
                     style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)", backfaceVisibility: "hidden" }} 
                     initial={{ rotateX: 0 }} 
                     animate={step === "opening" ? { rotateX: 180 } : {}} 
-                    transition={{ duration: 0.8 }} 
+                    transition={{ duration: 0.8, delay: 1.2 }} 
                   />
 
                   {/* Envelope Front Panel */}
@@ -192,7 +193,7 @@ export default function WeddingInvitation() {
                     style={{ clipPath: "polygon(0 0, 50% 50%, 100% 0, 100% 100%, 0 100%)", backfaceVisibility: "hidden" }} 
                   />
                   
-                  {/* Envelope Back Side (When flipped 180deg) */}
+                  {/* Envelope Back Side (180deg කැරකුණු විට පෙනෙන පිටුපස) */}
                   <div 
                     className="absolute inset-0 bg-gradient-to-br from-yellow-700 to-yellow-900 rounded-lg shadow-2xl flex items-center justify-center border border-yellow-600" 
                     style={{ transform: "rotateY(180deg)", backfaceVisibility: "hidden" }}
@@ -200,7 +201,7 @@ export default function WeddingInvitation() {
                      <Heart className="w-16 h-16 text-yellow-400/30 fill-current" />
                   </div>
 
-                  {/* The Clickable Heart Button */}
+                  {/* Click Button (හදවත සහිත බොත්තම) */}
                   {step === "envelope" && (
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30" style={{ transform: "translateZ(1px)" }}>
                         <button className="bg-white/95 p-3 sm:p-4 rounded-full shadow-[0_10px_25px_rgba(0,0,0,0.5)] text-yellow-600 animate-bounce border-2 border-yellow-200 hover:bg-white transition-colors">
@@ -214,7 +215,7 @@ export default function WeddingInvitation() {
                      </div>
                   )}
 
-                  {/* Flying Hearts Animation inside the envelope component */}
+                  {/* Flying Hearts Animation (පියන ඇරෙනවාත් සමඟම හදවත් විසිවීම) */}
                   {step === "opening" && flyingHearts.map((heart) => (
                     <motion.div
                       key={heart.id}
@@ -223,13 +224,13 @@ export default function WeddingInvitation() {
                       animate={{ 
                         x: `calc(-50% + ${Math.sin(heart.angle) * heart.velocity}px)`, 
                         y: `calc(-50% - ${Math.cos(heart.angle) * heart.velocity}px)`,
-                        scale: [0, 1.5, 0],
+                        scale: [0, heart.size / 10, 0],
                         opacity: [1, 1, 0]
                       }}
-                      transition={{ duration: 1.5, delay: heart.delay, ease: "easeOut" }}
+                      transition={{ duration: 1.5, delay: 1.5 + heart.delay, ease: "easeOut" }}
                       style={{ transform: "translateZ(20px)" }}
                     >
-                      <Heart size={heart.size} fill="currentColor" strokeWidth={0} />
+                      <Heart size={20} fill="currentColor" strokeWidth={0} />
                     </motion.div>
                   ))}
                   
@@ -387,7 +388,7 @@ export default function WeddingInvitation() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> 
     </main>
   );
 }
