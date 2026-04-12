@@ -388,7 +388,7 @@ export default function WeddingInvitation() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence> 
+      </AnimatePresence>      
     </main>
   );
 }
